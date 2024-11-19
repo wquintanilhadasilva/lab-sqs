@@ -31,17 +31,17 @@ public class SqsConfig {
 //        return new CustomMessageConverter(objectMapper);
 //    }
 
-//    @Bean
-//    SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient) {
-//        SqsMessagingMessageConverter messageConverter = new SqsMessagingMessageConverter();
-//        messageConverter.setPayloadTypeMapper(m -> null);
-//
-//        return SqsMessageListenerContainerFactory
-//                .builder()
-//                .configure(options -> options.messageConverter(messageConverter))
-//                .sqsAsyncClient(sqsAsyncClient)
-//                .build();
-//    }
+    @Bean
+    SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient) {
+        SqsMessagingMessageConverter messageConverter = new SqsMessagingMessageConverter();
+        messageConverter.setPayloadTypeMapper(m -> null);
+
+        return SqsMessageListenerContainerFactory
+                .builder()
+                .configure(options -> options.messageConverter(messageConverter))
+                .sqsAsyncClient(sqsAsyncClient)
+                .build();
+    }
 
 
 }

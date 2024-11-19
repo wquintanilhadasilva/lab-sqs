@@ -26,12 +26,12 @@ public class SqsConfig {
                 .build();
     }
 
-    @Bean
-    public SqsTemplate sqsTemplate(SqsAsyncClient asyncClient) {
-        return SqsTemplate.builder()
-                .sqsAsyncClient(asyncClient)
-                .configureDefaultConverter(AbstractMessagingMessageConverter::doNotSendPayloadTypeHeader)
-                .build();
-    }
+//    @Bean
+//    public SqsTemplate sqsTemplate(SqsAsyncClient asyncClient) {
+//        return SqsTemplate.builder()
+//                .sqsAsyncClient(asyncClient)
+//                .configureDefaultConverter(AbstractMessagingMessageConverter::doNotSendPayloadTypeHeader)
+//                .build();
+//    }
 
 }
