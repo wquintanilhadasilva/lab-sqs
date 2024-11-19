@@ -26,11 +26,6 @@ public class SqsConfig {
                 .build();
     }
 
-//    @Bean
-//    public MappingJackson2MessageConverter customMessageConverter(ObjectMapper objectMapper) {
-//        return new CustomMessageConverter(objectMapper);
-//    }
-
     @Bean
     SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient) {
         SqsMessagingMessageConverter messageConverter = new SqsMessagingMessageConverter();
