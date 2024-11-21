@@ -1,7 +1,11 @@
 package com.lab.sqs.producer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
-import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter;
+import io.awspring.cloud.sqs.operations.TemplateAcknowledgementMode;
+import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +28,31 @@ public class SqsConfig {
                 .endpointOverride(URI.create(sqsUri))
                 .region(Region.of(sqsRegion))
                 .build();
+    }
+
+    @Bean
+    public SqsTemplate sqsTemplate(ObjectMapper objectMapper) {
+
+        var messageConverter = new SqsMessagingMessageConverter();
+        messageConverter.setObjectMapper(objectMapper);
+
+        return SqsTemplate.builder()
+                .sqsAsyncClient(sqsAsyncClient())
+                .messageConverter(messageConverter)
+                .configure(options -> options
+                        .acknowledgementMode(TemplateAcknowledgementMode.MANUAL))
+                .build();
+    }
+
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        // Adiciona o módulo para suporte ao Java 8 Time
+        mapper.registerModule(new JavaTimeModule());
+        // Configuração para evitar erros de serialização com datas no formato ISO
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        return mapper;
     }
 
 }

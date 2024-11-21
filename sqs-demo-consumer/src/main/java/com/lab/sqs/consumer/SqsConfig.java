@@ -1,6 +1,8 @@
 package com.lab.sqs.consumer;
 
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
+import io.awspring.cloud.sqs.operations.TemplateAcknowledgementMode;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -35,6 +37,15 @@ public class SqsConfig {
                 .builder()
                 .configure(options -> options.messageConverter(messageConverter))
                 .sqsAsyncClient(sqsAsyncClient)
+                .build();
+    }
+
+    @Bean
+    public SqsTemplate sqsTemplate() {
+        return SqsTemplate.builder()
+                .sqsAsyncClient(sqsAsyncClient())
+                .configure(options -> options
+                        .acknowledgementMode(TemplateAcknowledgementMode.MANUAL))
                 .build();
     }
 

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -29,7 +30,13 @@ public class ApiService {
                 0
         );
         log.info("Enviando mensagem [{}] para o SQS", msg);
-        sqsTemplate.sendAsync(queueUrl, msg);
+        var result = sqsTemplate.send(to -> to.queue(queueUrl)
+                .payload(msg)
+                .headers(Map.of("H1", "VH1", "H2", "VH2"))
+                .delaySeconds(10)
+        );
+        log.info("Enviado [{}]", result);
+//        sqsTemplate.sendAsync(queueUrl, msg);
         return new SendResult(msg.id(), "Mensagem enviada para a fila SQS com sucesso!");
     }
 
