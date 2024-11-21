@@ -36,7 +36,6 @@ public class ApiService {
                 .delaySeconds(10)
         );
         log.info("Enviado [{}]", result);
-//        sqsTemplate.sendAsync(queueUrl, msg);
         return new SendResult(msg.id(), "Mensagem enviada para a fila SQS com sucesso!");
     }
 
