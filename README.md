@@ -2,6 +2,8 @@
 
 Simular envio e recebimento de mensagens no SQS com rotação de mensagens controlado o lock pelo Redis
 
+[Referência sobre SQS & SpringBoot](https://docs.awspring.io/spring-cloud-aws/docs/3.1.0/reference/html/index.html#sqs-integration)
+
 # Ambiente AWS LOCALSTACK
 
 Simular os serviços da aws localmente, use a localstck:
@@ -63,3 +65,39 @@ Spring-cloud AWS
 
 [Referência](https://docs.awspring.io/spring-cloud-aws/docs/3.1.0/reference/html/index.html#starter-dependencies)
 
+# Enviar dados para teste
+
+## Producer
+
+Envia um texto plano na Api do Produtor
+```
+curl --request POST \
+  --url http://localhost:8080/producer/send \
+  --header 'Content-Type: text/plain' \
+  --data 'teste de envio'
+```
+
+## Receiver
+
+Envia um json na API do Receiver, que não é o consumer mas o serviço externo chamado pelo consumer após receber a mensagem:
+
+```
+curl --request POST \
+  --url http://localhost:8082/receiver/process \
+  --header 'Content-Type: application/json' \
+  --data '{   "id": "12345",   "firstQueueDateTime": "2024-11-19T10:30:00Z",   "lastQueueDateTime": "2024-11-19T12:45:00Z",   "textMessage": "Hello, this is a test message.",   "equeueCount": 3 }'
+```
+
+Ajustar a configuração do receiver informando que é para rejeitar com erro as requisições de process
+
+```
+curl --request POST \
+  --url http://localhost:8082/receiver/reject-enabled
+```
+
+Ajustar a configuração do receiver informando que é para permitir e aceitar as requisições de process
+
+```
+curl --request POST \
+  --url http://localhost:8082/receiver/reject-disabled
+```

@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.ZonedDateTime;
+
 @RestController
 @RequestMapping
 @RequiredArgsConstructor
@@ -17,7 +19,11 @@ public class Api {
 
     @PostMapping("/process")
     public ResponseEntity<ReceiverResult> send(@RequestBody MessageInput message) {
-        return ResponseEntity.ok(apiService.send(message));
+        try {
+            return ResponseEntity.ok(apiService.send(message));
+        } catch (Exception ex) {
+            return new ResponseEntity<ReceiverResult>(new ReceiverResult(ZonedDateTime.now(), ex.getMessage()), HttpStatus.BAD_REQUEST) ;
+        }
     }
 
     @PostMapping("/reject-enabled")
@@ -28,7 +34,7 @@ public class Api {
 
     @PostMapping("/reject-disabled")
     public ResponseEntity<String> rejectDisabled() {
-        apiService.setHasReject(Boolean.TRUE);
+        apiService.setHasReject(Boolean.FALSE);
         return new ResponseEntity<String>("Rejeição de documentos desabilitada!", HttpStatus.ACCEPTED);
     }
 
