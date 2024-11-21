@@ -101,3 +101,8 @@ Ajustar a configuração do receiver informando que é para permitir e aceitar a
 curl --request POST \
   --url http://localhost:8082/receiver/reject-disabled
 ```
+
+# Importantes:
+
+[Entrega duplicada](https://repost.aws/knowledge-center/lambda-function-process-sqs-messages)
+

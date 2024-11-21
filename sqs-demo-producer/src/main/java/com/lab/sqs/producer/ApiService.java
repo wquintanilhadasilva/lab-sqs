@@ -27,13 +27,13 @@ public class ApiService {
                 ZonedDateTime.now(),
                 ZonedDateTime.now(),
                 message,
-                0
+                1
         );
         log.info("Enviando mensagem [{}] para o SQS", msg);
         var result = sqsTemplate.send(to -> to.queue(queueUrl)
                 .payload(msg)
                 .headers(Map.of("H1", "VH1", "H2", "VH2"))
-                .delaySeconds(10)
+                .delaySeconds(0)
         );
         log.info("Enviado [{}]", result);
         return new SendResult(msg.id(), "Mensagem enviada para a fila SQS com sucesso!");

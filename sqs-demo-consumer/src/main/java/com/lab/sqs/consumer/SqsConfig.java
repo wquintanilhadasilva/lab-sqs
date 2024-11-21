@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
+import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
-import io.awspring.cloud.sqs.operations.TemplateAcknowledgementMode;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -33,23 +33,29 @@ public class SqsConfig {
 
     @Bean
     SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(ObjectMapper objectMapper, SqsAsyncClient sqsAsyncClient) {
+        // Usado para ler
         SqsMessagingMessageConverter messageConverter = new SqsMessagingMessageConverter();
         messageConverter.setPayloadTypeMapper(m -> null);
         messageConverter.setObjectMapper(objectMapper);
 
         return SqsMessageListenerContainerFactory
                 .builder()
-                .configure(options -> options.messageConverter(messageConverter))
+                .configure(options ->
+                        options.messageConverter(messageConverter)
+                        .acknowledgementMode(AcknowledgementMode.MANUAL)
+                )
                 .sqsAsyncClient(sqsAsyncClient)
                 .build();
     }
 
     @Bean
-    public SqsTemplate sqsTemplate() {
+    public SqsTemplate sqsTemplate(ObjectMapper objectMapper) {
+        // Usado para publicar
         return SqsTemplate.builder()
                 .sqsAsyncClient(sqsAsyncClient())
-                .configure(options -> options
-                        .acknowledgementMode(TemplateAcknowledgementMode.MANUAL))
+                .configureDefaultConverter(converter -> {
+                    converter.setObjectMapper(objectMapper);
+                })
                 .build();
     }
 
