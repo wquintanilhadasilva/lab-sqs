@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.operations.TemplateAcknowledgementMode;
-import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,15 +32,15 @@ public class SqsConfig {
     @Bean
     public SqsTemplate sqsTemplate(ObjectMapper objectMapper) {
 
-        var messageConverter = new SqsMessagingMessageConverter();
-        messageConverter.setObjectMapper(objectMapper);
-
         return SqsTemplate.builder()
                 .sqsAsyncClient(sqsAsyncClient())
-                .messageConverter(messageConverter)
+                .configureDefaultConverter(converter -> {
+                    converter.setObjectMapper(objectMapper);
+                })
                 .configure(options -> options
                         .acknowledgementMode(TemplateAcknowledgementMode.MANUAL))
                 .build();
+
     }
 
 
