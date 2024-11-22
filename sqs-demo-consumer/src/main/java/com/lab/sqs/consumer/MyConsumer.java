@@ -47,7 +47,7 @@ public class MyConsumer {
                 sendToRetry(msg);
                 Acknowledgement.acknowledge(message); // Faz o ack da mensagem já colocada na fila de retry
             } catch (Exception ex) {
-                log.error("Erro ao reenfileirar a mensagem [{}]", msg);
+                log.error("Erro ao enviar a mensagem para a fila de retry [{}]", msg);
                 throw ex;
             }
         }
