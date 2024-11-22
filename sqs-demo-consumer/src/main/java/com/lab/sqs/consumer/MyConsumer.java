@@ -78,7 +78,7 @@ public class MyConsumer {
         var result = restTemplate.postForObject(externalUri + "/process", receiveMessage, String.class);
         log.info("Comunicação com externo com sucesso, enfileirando resultado processado para [{}] com [{}] tentativas",
                 receiveMessage.id(), receiveMessage.equeueCount());
-        var r = queue(result, responseQueueUrl, 0 );
+        var r = enqueue(result, responseQueueUrl, 0 );
         log.info("Enviado resultado processado [{}]", r);
         return result;
     }
@@ -87,11 +87,11 @@ public class MyConsumer {
         // Incrementa o número de retentativas
         ReceiveMessage newMsg =  msg.enqueueIncrement();
         log.info("Reenfileirando [{}] para tentar novamente em [{}] segundos pela [{}] vez", msg.id(), delay, msg.equeueCount());
-        var result = queue(newMsg, retryQueueUrl, delay);
+        var result = enqueue(newMsg, retryQueueUrl, delay);
         log.info("Enviado para a retentaiva[{}]", result);
     }
 
-    private <T,R> R queue(T msg, String queueName, Integer delay) {
+    private <T,R> R enqueue(T msg, String queueName, Integer delay) {
         var result = sqsTemplate.send(to -> to.queue(queueName)
                 .payload(msg)
                 .headers(Map.of("H1Delay", "VH1DelayValue", "H2Delay", "VH2DelayValue"))

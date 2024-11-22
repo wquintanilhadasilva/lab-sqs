@@ -17,7 +17,8 @@ public class ApiService {
             throw new RuntimeException("Mensagem Rejeitada");
         }
         log.info("Processando a mensagem: [{}]", message);
-        return new ReceiverResult(ZonedDateTime.now(), String.format("Mensagem %s processada", message.id()));
+        return new ReceiverResult(ZonedDateTime.now(), String.format("Mensagem %s processada: %s", message.id(),
+                message.textMessage()));
     }
 
     public void setHasReject(Boolean reject) {
