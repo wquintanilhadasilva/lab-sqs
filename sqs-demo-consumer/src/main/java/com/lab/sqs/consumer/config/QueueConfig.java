@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
+import java.util.concurrent.ExecutionException;
+
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
@@ -24,12 +26,12 @@ public class QueueConfig {
     private String queueResponseName;
 
     @PostConstruct
-    public void postConstruct() {
+    public void postConstruct() throws ExecutionException, InterruptedException {
         log.info("Criando as filas caso não existam....");
         QueueManagement manager = new QueueManagement(asyncClient, 5);
         manager.createQueueWithDlq(queueSentName, queueSentName.replace(".fifo", "") + "-dlq.fifo", Boolean.TRUE);
         manager.createQueueWithDlq(queueRetryName, queueRetryName + "-dlq", Boolean.FALSE);
-        manager.createQueueWithDlq(queueResponseName, queueResponseName + "-dlq", Boolean.FALSE);
+        manager.createQueue(queueResponseName, Boolean.FALSE);
     }
 
 }
