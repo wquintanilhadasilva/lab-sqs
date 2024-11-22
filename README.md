@@ -14,9 +14,11 @@ Simular os serviços da aws localmente, use a localstck:
 
 ## Configuração
 
-Copie para o diretório do usário, na pasta `~/./localstack`.
+Copie para o diretório do usário, na pasta `~/.localstack`.
 
-Verifique se está ok: `localstack --version`
+Coloque essa pasta na variável de ambiente *PATH*
+
+Verifique se está ok digitando no console: `localstack --version`
 
 ## Execução
 Execute o docker daemon e depois:
