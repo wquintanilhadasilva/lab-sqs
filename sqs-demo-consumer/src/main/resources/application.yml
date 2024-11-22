@@ -10,10 +10,10 @@ spring:
 application:
   sqs-uri: http://localhost:4566 #  https://localhost.localstack.cloud:4566/000000000000/doc-sent #
   sqs-region: sa-east-1
-  sqs-queue-name: doc-sent
-  sqs-retry-queue-name: doc-sent-retry
-  sqs-response-queue-name: doc-sent-response
+  sqs-queue-name: doc-sent.fifo
+  sqs-retry-queue-name: doc-sent-retry.fifo
+  sqs-response-queue-name: doc-sent-response.fifo
   sqs-retry-delay-seconds: 15
-  sqs-retry-queue-url: https://localhost.localstack.cloud:4566/000000000000/doc-sent-retry
+  sqs-retry-queue-url: https://localhost.localstack.cloud:4566/000000000000/doc-sent-retry.fifo
   sqs-response-queue-url: https://localhost.localstack.cloud:4566/000000000000/${application.sqs-response-queue-name}
   external-uri: http://localhost:8082/receiver

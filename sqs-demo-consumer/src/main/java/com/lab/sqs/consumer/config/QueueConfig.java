@@ -27,9 +27,9 @@ public class QueueConfig {
     public void postConstruct() {
         log.info("Criando as filas caso não existam....");
         QueueManagement manager = new QueueManagement(asyncClient, 5);
-        manager.createQueueWithDlq(queueSentName, queueSentName + "-dlq");
-        manager.createQueueWithDlq(queueRetryName, queueRetryName + "-dlq");
-        manager.createQueueWithDlq(queueResponseName, queueResponseName + "-dlq");
+        manager.createQueueWithDlq(queueSentName, queueSentName.replace(".fifo", "") + "-dlq.fifo");
+        manager.createQueueWithDlq(queueRetryName, queueRetryName.replace(".fifo", "") + "-dlq.fifo");
+        manager.createQueueWithDlq(queueResponseName, queueResponseName.replace(".fifo", "") + "-dlq.fifo");
     }
 
 }

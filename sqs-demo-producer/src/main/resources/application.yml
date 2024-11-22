@@ -10,4 +10,4 @@ spring:
 application:
   sqs-uri: http://localhost:4566
   sqs-region: sa-east-1
-  sqs-queue-url: https://localhost.localstack.cloud:4566/000000000000/doc-sent
+  sqs-queue-url: https://localhost.localstack.cloud:4566/000000000000/doc-sent.fifo
