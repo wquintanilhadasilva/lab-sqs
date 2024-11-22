@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
 import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -23,33 +24,35 @@ public class QueueManagement {
     private final SqsAsyncClient sqsAsyncClient;
     private final int maxRetryCount;
 
-    public void createQueueWithDlq(String queueName, String dlqName) {
+    public void createQueueWithDlq(String queueName, String dlqName, Boolean fifo) {
         try {
             // Cria a DLQ
-            String dlqUrl = createQueue(dlqName);
+            String dlqUrl = createQueue(dlqName, fifo);
             // Configura a DLQ
             String dlqArn = getQueueArn(dlqUrl);
 
             // Cria a fila principal com a DLQ associada e demais atributos de controle
-            createQueueWithAttributes(queueName, dlqArn);
+            createQueueWithRedrivePolicy(queueName, dlqArn, fifo);
         } catch (Exception e) {
             log.error("Erro ao criar a fila ou associar a DLQ", e);
         }
     }
 
-    public String createQueue(String queueName, Map<QueueAttributeName,String> attributes) throws ExecutionException, InterruptedException {
+    public String createQueue(String queueName, Boolean fifo, Map<QueueAttributeName,String> attributes) throws ExecutionException, InterruptedException {
         log.info("Verificando se a fila [{}] existe...", queueName);
-        return checkExistQueue(queueName).orElseGet(() -> create(queueName, attributes));
+        if (attributes == null) {
+            attributes = new HashMap<>();
+        }
+        Map<QueueAttributeName, String> finalAttributes = new HashMap<>(attributes);
+        if (fifo) {
+            finalAttributes.put( QueueAttributeName.FIFO_QUEUE, fifo.toString());
+        }
+        return checkExistQueue(queueName).orElseGet(() -> create(queueName, finalAttributes));
     }
 
-    public String createQueue(String queueName) throws ExecutionException, InterruptedException {
-        Map<QueueAttributeName, String> attributes = Map.of(
-                QueueAttributeName.FIFO_QUEUE, "true",
-                QueueAttributeName.CONTENT_BASED_DEDUPLICATION, "false", // permite duplicação pelo conteúdo
-                QueueAttributeName.MESSAGE_RETENTION_PERIOD, "86400", // retem a msg na fila sem ser consumida em minutos = 1 dia
-                QueueAttributeName.VISIBILITY_TIMEOUT, "20" // aguarda 20 seg para retornar à fila caso não confirmada
-        );
-        return createQueue(queueName, attributes);
+    public String createQueue(String queueName, Boolean fifo) throws ExecutionException, InterruptedException {
+        Map<QueueAttributeName, String> attributes = buildAttributes(fifo);
+        return createQueue(queueName, fifo, attributes);
     }
 
     private String getQueueArn(String queueUrl) throws ExecutionException, InterruptedException {
@@ -61,20 +64,15 @@ public class QueueManagement {
         return attributesResponse.attributes().get(QueueAttributeName.QUEUE_ARN);
     }
 
-    private void createQueueWithAttributes(String queueName, String dlqArn) throws ExecutionException, InterruptedException {
+    private void createQueueWithRedrivePolicy(String queueName, String dlqArn, Boolean fifo) throws ExecutionException, InterruptedException {
         checkExistQueue(queueName).ifPresentOrElse(uri -> log.warn("Fila [{}] já existe e não será criada!", queueName),
                 () -> {
                     log.info("Criando fila [{}] com DLQ associada [{}]", queueName, dlqArn);
                     String atr = String.format("{\"deadLetterTargetArn\":\"%s\",\"maxReceiveCount\":\"%s\"}", dlqArn, maxRetryCount);
-                    Map<QueueAttributeName, String> attributes = Map.of(
-                            QueueAttributeName.REDRIVE_POLICY, atr,
-                            QueueAttributeName.FIFO_QUEUE, "true",
-                            QueueAttributeName.CONTENT_BASED_DEDUPLICATION, "true",
-                            QueueAttributeName.MESSAGE_RETENTION_PERIOD, "86400", //em segundos = 1 dia
-                            QueueAttributeName.VISIBILITY_TIMEOUT, "20" // aguarda 20 seg para retornar à fila caso não confirmada
-                    );
+                    Map<QueueAttributeName, String> attributes = buildAttributes(fifo);
+                    attributes.put(QueueAttributeName.REDRIVE_POLICY, atr);
                     try {
-                        String queueUrl = createQueue(queueName, attributes);
+                        String queueUrl = createQueue(queueName, fifo, attributes);
                         log.info("Fila [{}] criada com sucesso e associada à DLQ [{}]. URL: [{}]",
                                 queueName, dlqArn, queueUrl);
                     } catch (ExecutionException | InterruptedException e) {
@@ -82,6 +80,18 @@ public class QueueManagement {
                     }
                 }
         );
+    }
+
+    private Map<QueueAttributeName,String> buildAttributes(Boolean fifo) {
+        Map<QueueAttributeName,String> attr = new HashMap<>(Map.of(
+                QueueAttributeName.MESSAGE_RETENTION_PERIOD, "86400", //em minutos = 1 dia
+                QueueAttributeName.VISIBILITY_TIMEOUT, "4" // aguarda 20 seg para retornar à fila caso não confirmada
+        ));
+        if (fifo) {
+            attr.put(QueueAttributeName.FIFO_QUEUE, fifo.toString());
+            attr.put(QueueAttributeName.CONTENT_BASED_DEDUPLICATION, "true");
+        }
+        return attr;
     }
 
     private String create(String queueName, Map<QueueAttributeName,String> attributes) {
