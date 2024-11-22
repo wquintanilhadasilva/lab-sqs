@@ -32,7 +32,7 @@ public class MyConsumer {
     @Value("${application.sqs-retry-delay-seconds}")
     private Integer delay;
 
-    @SqsListener("${application.sqs-queue-name}")
+    @SqsListener(value = "${application.sqs-queue-name}", maxConcurrentMessages = "5", maxMessagesPerPoll = "3")
     public void listen(Message<ReceiveMessage> message) {
         log.info("Recebendo a mensagem [{}]", message);
         ReceiveMessage msg = message.getPayload();
