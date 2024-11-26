@@ -17,3 +17,4 @@ application:
   sqs-retry-queue-url: https://localhost.localstack.cloud:4566/000000000000/doc-sent-retry
   sqs-response-queue-url: https://localhost.localstack.cloud:4566/000000000000/${application.sqs-response-queue-name}
   external-uri: http://localhost:8082/receiver
+  workflow-uri: http://localhost:1880/proceed

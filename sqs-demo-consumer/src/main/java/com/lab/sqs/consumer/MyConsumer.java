@@ -29,6 +29,9 @@ public class MyConsumer {
     @Value("${application.external-uri}")
     private String externalUri;
 
+    @Value("${application.workflow-uri}")
+    private String workflowUri;
+
     @Value("${application.sqs-retry-delay-seconds}")
     private Integer delay;
 
@@ -40,6 +43,7 @@ public class MyConsumer {
         try {
             String result = sendToExternal(msg);
             log.info("Resultado do envio: [{}]", result);
+            sentToFlow(result);
             Acknowledgement.acknowledge(message); // Faz o ack da mensagem enviada para o receiver
         } catch (Exception e) {
             log.error("Erro ao enviar para o serviço externo, deve executar um retry", e);
@@ -61,6 +65,7 @@ public class MyConsumer {
         try {
             String result = sendToExternal(msg);
             log.info("Resultado do reenvio: [{}]", result);
+            sentToFlow(result);
             Acknowledgement.acknowledge(message);
         } catch (Exception e) {
             log.error("Erro ao reenviar para o serviço externo [{}], pela [{}] vez, deve executar um retry", msg.id(), msg.equeueCount(), e);
@@ -75,12 +80,23 @@ public class MyConsumer {
     }
 
     private String sendToExternal(ReceiveMessage receiveMessage) {
-        var result = restTemplate.postForObject(externalUri + "/process", receiveMessage, String.class);
+        var result = sentRestApi(receiveMessage, externalUri + "/process");
         log.info("Comunicação com externo com sucesso, enfileirando resultado processado para [{}] com [{}] tentativas",
                 receiveMessage.id(), receiveMessage.equeueCount());
         var r = enqueue(result, responseQueueUrl, 0 );
         log.info("Enviado resultado processado [{}]", r);
         return result;
+    }
+
+    private void sentToFlow(String message) {
+        log.info("Enviando resposta para o workflow: [{}]", message);
+        var result = sentRestApi(message, workflowUri);
+        log.info("Resposta do workflow: [{}]", result);
+    }
+
+    private String sentRestApi(Object body, String url) {
+        log.info("Enviando para a API [{}], o objeto [{}]", url, body);
+        return restTemplate.postForObject(url, body, String.class);
     }
 
     private void sendToRetry(ReceiveMessage msg) {
